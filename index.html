@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BreakIQ — AI Reconciliation Break Resolution Agent</title>
+<style>
+:root{
+  --ink:#0f1b2d;--muted:#5b6b80;--line:#e3e8ef;--bg:#f5f7fa;--card:#fff;
+  --navy:#0f2a44;--teal:#0f766e;--teal-l:#e6f4f2;--amber:#b45309;--amber-l:#fef3e2;
+  --red:#b42318;--red-l:#fdecea;--green:#067647;--green-l:#e7f6ec;--blue:#1d4ed8;--blue-l:#e8eefc;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45}
+header{background:var(--navy);color:#fff;padding:18px 28px 0}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.brand h1{margin:0;font-size:22px;letter-spacing:.2px}
+.brand h1 span{color:#5eead4}
+.brand p{margin:4px 0 0;color:#c7d3e3;max-width:720px}
+.hdr-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hdr-actions label{color:#c7d3e3;font-size:13px;display:flex;gap:6px;align-items:center;cursor:pointer}
+.chip{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:4px 10px;font-size:12px;color:#dbe5f1}
+nav{display:flex;gap:2px;margin-top:16px;overflow-x:auto}
+nav button{background:none;border:none;color:#c7d3e3;padding:10px 16px;font-size:14px;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{color:#fff;border-bottom-color:#5eead4;font-weight:600}
+main{padding:24px 28px;max-width:1320px;margin:0 auto}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:7px 12px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:#b9c4d2}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.primary:hover{background:#0b5f59}
+.btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+.btn.danger{color:var(--red);border-color:#f3c2bd}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(4,1fr)}
+@media(max-width:700px){.kpis{grid-template-columns:1fr 1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.kpi .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+.kpi .val{font-size:26px;font-weight:650;margin-top:4px}
+.kpi .sub{color:var(--muted);font-size:12px;margin-top:2px}
+h2{font-size:16px;margin:0 0 12px}
+h3{font-size:14px;margin:18px 0 8px}
+.section{margin-top:22px}
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;position:relative}
+.step .n{font-size:11px;color:var(--teal);font-weight:700;letter-spacing:.5px}
+.step .t{font-weight:600;margin:2px 0 6px}
+.step .c{font-size:22px;font-weight:650}
+.step .d{font-size:12px;color:var(--muted)}
+.two{display:grid;grid-template-columns:1.5fr 1fr;gap:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;background:#fafbfc}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover{background:#f7fafc}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.s-auto{background:var(--teal-l);color:var(--teal)}
+.s-review{background:var(--amber-l);color:var(--amber)}
+.s-approved{background:var(--green-l);color:var(--green)}
+.s-reclassified{background:var(--blue-l);color:var(--blue)}
+.s-escalated{background:var(--red-l);color:var(--red)}
+.cause{background:#eef2f6;color:#334155}
+.ok{color:var(--green);font-weight:700}.bad{color:var(--red);font-weight:700}
+.conf{display:inline-flex;vertical-align:middle;align-items:center;gap:8px}
+.bar{height:6px;border-radius:3px;background:#e5e9f0;width:70px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--teal)}
+.bar i.lo{background:var(--amber)}
+.policy label{display:block;margin-bottom:12px}
+.policy .row{display:flex;justify-content:space-between;font-weight:600;margin-bottom:4px}
+.policy input[type=range]{width:100%}
+.checks{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px}
+.checks label{display:flex;gap:6px;align-items:center;font-weight:400;margin:0}
+.note{font-size:12px;color:var(--muted)}
+.warn{background:var(--red-l);color:var(--red);border:1px solid #f3c2bd;border-radius:10px;padding:10px 12px;margin-top:12px;font-size:13px}
+.good{background:var(--green-l);color:var(--green);border:1px solid #b7e4c7;border-radius:10px;padding:10px 12px;margin-top:12px;font-size:13px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.filters button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}
+.filters button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.tablewrap{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:12px}
+.drawer-bg{position:fixed;inset:0;background:rgba(15,27,45,.35);display:none;z-index:10}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(620px,100%);background:#fff;box-shadow:-8px 0 30px rgba(0,0,0,.15);transform:translateX(105%);transition:transform .2s;z-index:11;overflow-y:auto}
+.drawer.open{transform:none}
+.drawer-bg.open{display:block}
+.dh{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:8px;z-index:1}
+.db{padding:4px 20px 28px}
+.x{border:none;background:none;font-size:24px;cursor:pointer;color:var(--muted);line-height:1}
+.decision{border-radius:10px;padding:10px 12px;margin-top:14px;font-size:13px}
+.decision.auto{background:var(--teal-l);color:#0b4f4a}
+.decision.review{background:var(--amber-l);color:#7c3d06}
+.diff{background:#fff4d6;font-weight:600}
+ul.ev{margin:6px 0;padding-left:18px}
+ul.ev li{margin:3px 0}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+select,input[type=text],input[type=number]{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px;font-family:inherit}
+input[type=text]{flex:1;min-width:180px}
+.key{border:1px dashed #94a3b8;border-radius:10px;padding:10px 12px;margin-top:14px;font-size:13px;background:#fafbfc}
+.doc p,.doc li{max-width:860px}
+.doc h2{margin-top:22px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;z-index:20;pointer-events:none}
+.toast.show{opacity:1}
+.muted{color:var(--muted)}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:10px 0 30px}
+@media(max-width:900px){.pipe{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}main{padding:16px}header{padding:16px 16px 0}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="brand">
+      <h1>Break<span>IQ</span> · Reconciliation Break Resolution Agent</h1>
+      <p>Matches custodian records to the fund ledger, diagnoses every break with evidence, and auto-resolves only what the control policy allows. Everything else goes to an analyst, and every decision is logged.</p>
+    </div>
+    <div class="hdr-actions">
+      <span class="chip" id="seedChip"></span>
+      <label title="Show the planted answer key used to measure accuracy"><input type="checkbox" id="keyToggle"> Answer key</label>
+      <button class="btn ghost" id="newData">↻ New sample data</button>
+    </div>
+  </div>
+  <nav id="tabs">
+    <button data-tab="overview" class="on">Overview</button>
+    <button data-tab="queue">Break queue</button>
+    <button data-tab="audit">Audit log</button>
+    <button data-tab="data">Source data</button>
+    <button data-tab="how">How it works</button>
+  </nav>
+</header>
+
+<main>
+  <section id="tab-overview"></section>
+  <section id="tab-queue" hidden></section>
+  <section id="tab-audit" hidden></section>
+  <section id="tab-data" hidden></section>
+  <section id="tab-how" hidden class="doc"></section>
+</main>
+<footer>BreakIQ is a portfolio prototype that runs on synthetic data in your browser. No real client data is used and nothing is sent anywhere.</footer>
+
+<div class="drawer-bg" id="drawerBg"></div>
+<aside class="drawer" id="drawer" aria-label="Break detail"></aside>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   BreakIQ — engine (pure functions, no DOM). Runs in browser or Node.
+   ========================================================================= */
+const STATEMENT_DATE = '2026-10-30';
+const FX = { USD: 1, EUR: 1.0842, GBP: 1.2715, CHF: 1.1318, JPY: 0.00657 };
+const SECS = [
+  { t: 'AAPL', n: 'Apple Inc.', ccy: 'USD', px: 228.5 },
+  { t: 'MSFT', n: 'Microsoft Corp.', ccy: 'USD', px: 414.2 },
+  { t: 'JPM',  n: 'JPMorgan Chase & Co.', ccy: 'USD', px: 221.4 },
+  { t: 'XOM',  n: 'Exxon Mobil Corp.', ccy: 'USD', px: 118.3 },
+  { t: 'KO',   n: 'Coca-Cola Co.', ccy: 'USD', px: 69.8 },
+  { t: 'SAP',  n: 'SAP SE', ccy: 'EUR', px: 205.6 },
+  { t: 'ASML', n: 'ASML Holding NV', ccy: 'EUR', px: 671.0 },
+  { t: 'HSBA', n: 'HSBC Holdings plc', ccy: 'GBP', px: 7.12 },
+  { t: 'ULVR', n: 'Unilever plc', ccy: 'GBP', px: 47.9 },
+  { t: 'NESN', n: 'Nestlé SA', ccy: 'CHF', px: 84.3 },
+  { t: '7203', n: 'Toyota Motor Corp.', ccy: 'JPY', px: 2752 }
+];
+// Synthetic dividend amounts per share (illustrative only)
+const DIV_PS = { JPM: 1.40, XOM: 0.99, KO: 0.51, MSFT: 0.83 };
+
+const LABEL = {
+  TIMING: 'Timing / settlement', FX: 'FX rate difference', FEE: 'Fee / charge',
+  PRICE: 'Price difference', QTY: 'Quantity error', MISSING_LEDGER: 'Missing in ledger',
+  MISSING_CUSTODIAN: 'Not confirmed by custodian', CORP_ACTION: 'Corporate action', DUPLICATE: 'Duplicate booking'
+};
+const CAUSES = Object.keys(LABEL);
+const MIN_MANUAL = 20; // assumed analyst minutes to investigate one break by hand
+const MIN_ASSIST = 8;  // assumed minutes saved when the agent pre-diagnoses a break
+
+function rngF(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const D = s => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d); };
+const fmtD = t => new Date(t).toISOString().slice(0, 10);
+function addBD(s, n) { let t = D(s), k = 0; while (k < n) { t += 864e5; const w = new Date(t).getUTCDay(); if (w !== 0 && w !== 6) k++; } return fmtD(t); }
+function bdays(a, b) { let x = D(a), y = D(b), s = 1; if (x > y) { [x, y] = [y, x]; s = -1; } let n = 0; while (x < y) { x += 864e5; const w = new Date(x).getUTCDay(); if (w !== 0 && w !== 6) n++; } return n * s; }
+const r2 = x => Math.round(x * 100) / 100;
+const sortDigits = n => String(n).split('').sort().join('');
+function shuffle(a, R) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function money(rec) { const gross = rec.qty * rec.price; rec.local = r2(rec.side === 'BUY' ? -(gross + rec.comm) : (gross - rec.comm)); rec.base = r2(rec.local * rec.fx); return rec; }
+
+/* ---------- 1. Synthetic data with a planted answer key ---------- */
+function generate(seed) {
+  const R = rngF(seed), pick = a => a[Math.floor(R() * a.length)];
+  const days = [];
+  for (let t = D('2026-10-01'); t <= D('2026-10-26'); t += 864e5) { const w = new Date(t).getUTCDay(); if (w && w !== 6) days.push(fmtD(t)); }
+  const trades = [];
+  for (let i = 0; i < 150; i++) {
+    const s = pick(SECS), side = R() < .55 ? 'BUY' : 'SELL';
+    const lot = s.ccy === 'JPY' ? 100 : s.ccy === 'GBP' ? 500 : 10;
+    const qty = lot * (5 + Math.floor(R() * (s.ccy === 'GBP' ? 60 : 300)));
+    const dp = s.ccy === 'JPY' ? 0 : 2;
+    const price = +(s.px * (1 + (R() - .5) * .06)).toFixed(dp);
+    const td = pick(days), sd = addBD(td, s.ccy === 'USD' ? 1 : 2);
+    const comm = r2(qty * price * 0.0004);
+    trades.push(money({ ref: 'TR-' + (260101 + i), type: 'TRADE', sec: s.t, ccy: s.ccy, side, qty, price, comm, td, sd, fx: FX[s.ccy] }));
+  }
+  const cust = trades.map(t => ({ ...t })), led = trades.map(t => ({ ...t }));
+  const idx = shuffle([...trades.keys()], R), used = new Set();
+  const take = (n, pred = () => true) => { const out = []; for (const i of idx) { if (out.length >= n) break; if (!used.has(i) && pred(trades[i])) { used.add(i); out.push(i); } } return out; };
+  const mark = (i, cause) => { cust[i].truth = cause; led[i].truth = cause; };
+
+  // FX: ledger used a different rate (5 normal source/fixing gaps, 1 large rate error)
+  take(6, t => t.ccy !== 'USD').forEach((i, k) => {
+    const sign = R() < .5 ? -1 : 1, gap = k < 5 ? 0.002 + R() * 0.008 : 0.035 + R() * 0.01;
+    led[i].fx = +(led[i].fx * (1 + sign * gap)).toFixed(5); led[i].base = r2(led[i].local * led[i].fx); mark(i, 'FX');
+  });
+  // FEE: custodian deducted a charge the ledger didn't book
+  const feeIdx = [...take(2, t => t.ccy === 'GBP' && t.side === 'BUY'), ...take(2, t => t.ccy === 'USD' && t.side === 'SELL')];
+  feeIdx.push(...take(5 - feeIdx.length));
+  feeIdx.forEach(i => {
+    const t = cust[i], gross = t.qty * t.price;
+    const fee = t.ccy === 'GBP' && t.side === 'BUY' ? r2(gross * 0.005) : t.ccy === 'USD' && t.side === 'SELL' ? r2(gross * 0.0000278) : 25;
+    t.local = r2(t.local - fee); t.base = r2(t.local * t.fx); mark(i, 'FEE');
+  });
+  // PRICE: execution price differs (3 visible, 2 "disguised" where only cash differs by a round amount)
+  take(3).forEach(i => { const t = cust[i]; t.price = +(t.price + (t.ccy === 'JPY' ? 1 + Math.floor(R() * 3) : 0.01 + Math.floor(R() * 5) / 100)).toFixed(t.ccy === 'JPY' ? 0 : 2); money(t); mark(i, 'PRICE'); });
+  take(2).forEach((i, k) => { const t = cust[i]; t.local = r2(t.local - [50, 120][k]); t.base = r2(t.local * t.fx); mark(i, 'PRICE'); });
+  // TIMING: custodian shows a later settlement date (failed / late settle)
+  take(6).forEach(i => { cust[i].sd = addBD(cust[i].sd, 1 + Math.floor(R() * 3)); mark(i, 'TIMING'); });
+  // QTY: keying errors in the ledger
+  take(3).forEach((i, k) => {
+    const l = led[i], s = String(l.qty);
+    let q = l.qty * 10;
+    if (k === 1) { for (let p = 0; p < s.length - 1; p++) if (s[p] !== s[p + 1] && s[p + 1] !== '0') { q = +(s.slice(0, p) + s[p + 1] + s[p] + s.slice(p + 2)); break; } }
+    if (k === 2) q = l.qty + (l.ccy === 'JPY' ? 1000 : l.ccy === 'GBP' ? 1500 : 70);
+    l.qty = q; money(l); mark(i, 'QTY');
+  });
+  // MISSING: one side never booked
+  take(4).forEach(i => { led[i].removed = true; cust[i].truth = 'MISSING_LEDGER'; });
+  take(2, t => t.td >= '2026-10-19').forEach(i => { cust[i].removed = true; led[i].truth = 'MISSING_CUSTODIAN'; });
+  // DUPLICATE: ledger booked the same trade twice
+  const dups = take(2).map(i => ({ ...led[i], truth: 'DUPLICATE', dupClone: true }));
+  // Manual ledger bookings with no reference (agent must fuzzy-match these)
+  take(6).forEach(i => { led[i].ref = ''; led[i].manual = true; });
+
+  // Corporate actions: 4 dividends paid at custodian; ledger booked 2; feed knows 3
+  const cal = [], divSecs = ['JPM', 'XOM', 'KO', 'MSFT'], divDays = days.filter(d => d >= '2026-10-15');
+  const divs = divSecs.map((sec, k) => {
+    const pos = 100 * (20 + Math.floor(R() * 100)), date = pick(divDays), ps = DIV_PS[sec];
+    if (k < 3) cal.push({ sec, date, ps, pos });
+    return { ref: 'CA-' + (2610 + k), type: 'DIV', sec, ccy: 'USD', side: 'INCOME', qty: pos, price: ps, comm: 0, td: date, sd: date, fx: 1, local: r2(pos * ps), base: r2(pos * ps) };
+  });
+  divs.forEach((d, k) => { cust.push({ ...d, truth: k >= 2 ? 'CORP_ACTION' : undefined }); if (k < 2) led.push({ ...d }); });
+  // Monthly custody fee only on custodian statement
+  const cf = r2(-(1500 + R() * 1400));
+  cust.push({ ref: 'CF-2610', type: 'FEE', sec: '—', ccy: 'USD', side: 'CHARGE', qty: 0, price: 0, comm: 0, td: STATEMENT_DATE, sd: STATEMENT_DATE, fx: 1, local: cf, base: cf, truth: 'FEE' });
+
+  const C = cust.filter(r => !r.removed).sort((a, b) => a.td.localeCompare(b.td));
+  const L = [...led.filter(r => !r.removed), ...dups].sort((a, b) => a.td.localeCompare(b.td));
+  C.forEach((r, i) => r.id = 'C-' + String(i + 1).padStart(4, '0'));
+  L.forEach((r, i) => r.id = 'L-' + String(i + 1).padStart(4, '0'));
+  return { cust: C, led: L, cal };
+}
+
+/* ---------- 2. Matching ---------- */
+function compare(c, l) {
+  const d = [];
+  if (c.qty !== l.qty) d.push('qty');
+  if (Math.abs(c.price - l.price) > 1e-9) d.push('price');
+  if (Math.abs(c.local - l.local) > .005) d.push('local');
+  if (Math.abs(c.fx - l.fx) > 1e-9) d.push('fx');
+  if (Math.abs(c.base - l.base) > .005) d.push('base');
+  if (c.sd !== l.sd) d.push('sd');
+  return d;
+}
+function reconcile(cust, led) {
+  const matches = [], breaks = [], usedL = new Set(), usedC = new Set(), byRef = {};
+  led.forEach(l => { if (l.ref) (byRef[l.ref] = byRef[l.ref] || []).push(l); });
+  // Pass 1: exact reference match, then field-by-field comparison
+  cust.forEach(c => {
+    const l = (byRef[c.ref] || []).find(x => !usedL.has(x.id)); if (!l) return;
+    usedL.add(l.id); usedC.add(c.id);
+    const diffs = compare(c, l);
+    if (!diffs.length) matches.push({ c, l, how: 'exact' });
+    else breaks.push({ c, l, diffs, truth: c.truth || l.truth });
+  });
+  // Pass 2: agent fuzzy match for ledger entries with no reference
+  led.filter(l => !usedL.has(l.id) && !l.ref).forEach(l => {
+    const c = cust.find(c => !usedC.has(c.id) && c.sec === l.sec && c.side === l.side && c.qty === l.qty && c.td === l.td && Math.abs(c.local - l.local) < .01);
+    if (c) { usedL.add(l.id); usedC.add(c.id); matches.push({ c, l, how: 'agent', why: 'Ledger entry had no reference (manual booking). Matched on security, side, quantity, trade date and amount.' }); }
+  });
+  // Leftovers become one-sided breaks
+  cust.filter(c => !usedC.has(c.id)).forEach(c => breaks.push({ c, l: null, diffs: [], truth: c.truth }));
+  led.filter(l => !usedL.has(l.id)).forEach(l => {
+    const twin = l.ref && (byRef[l.ref] || []).find(x => x !== l && usedL.has(x.id));
+    breaks.push({ c: null, l, diffs: [], truth: l.truth, dupOf: twin ? twin.id : null });
+  });
+  return { matches, breaks };
+}
+
+/* ---------- 3. Diagnosis (explainable scoring) ---------- */
+const n0 = x => Number(x).toLocaleString('en-US');
+const n2 = x => Number(x).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const usd = x => (x < 0 ? '-$' : '$') + n2(Math.abs(x));
+const usd0 = x => '$' + Math.round(x).toLocaleString('en-US');
+const pct = x => Math.round(x * 100) + '%';
+
+function feeSchedule(rec, amt) {
+  const gross = rec.qty * rec.price, c = [];
+  if (rec.ccy === 'GBP' && rec.side === 'BUY') c.push({ name: 'UK stamp duty (0.50% of consideration)', v: r2(gross * 0.005) });
+  if (rec.ccy === 'USD' && rec.side === 'SELL') c.push({ name: 'Regulatory transaction fee on sales (schedule rate $27.80 per $1M)', v: r2(gross * 0.0000278) });
+  c.push({ name: 'Custodian ticket charge (25.00 per trade)', v: 25 });
+  return c.find(x => Math.abs(x.v - amt) <= Math.max(0.02, x.v * 0.01));
+}
+
+function classify(b, ctx) {
+  const c = b.c, l = b.l, ev = [], alt = [];
+  let cause, conf, feeName = null;
+  if (c && l) {
+    const dQ = c.qty - l.qty, dP = c.price - l.price, dL = r2(c.local - l.local), dB = r2(c.base - l.base), dS = bdays(l.sd, c.sd);
+    if (dQ !== 0) {
+      cause = 'QTY'; const ratio = c.qty / l.qty;
+      if (ratio === 10 || ratio === 0.1) { conf = .97; ev.push(`Quantities differ by exactly a factor of 10 (${n0(l.qty)} vs ${n0(c.qty)}), a classic keying error`); }
+      else if (sortDigits(c.qty) === sortDigits(l.qty)) { conf = .93; ev.push(`Same digits in a different order (${n0(l.qty)} vs ${n0(c.qty)}), a transposition error`); }
+      else { conf = .74; ev.push(`Quantity differs (${n0(l.qty)} vs ${n0(c.qty)}) with no recognisable keying pattern`); alt.push('PRICE'); }
+      if (Math.abs(dP) < 1e-9) ev.push('Execution price agrees on both sides, so the cash gap is driven by quantity');
+    } else if (dS !== 0 && Math.abs(dL) < .01 && Math.abs(dB) < .01) {
+      cause = 'TIMING'; conf = .96;
+      ev.push(`Settlement date differs by ${Math.abs(dS)} business day(s): ledger ${l.sd}, custodian ${c.sd}`);
+      ev.push('Quantity, price and cash amounts agree exactly');
+      ev.push('Pattern consistent with a late or failed settlement; no P&L impact');
+    } else if (Math.abs(dL) < .01 && Math.abs(dB) >= .01) {
+      cause = 'FX'; const p = Math.abs(dB / l.base);
+      ev.push(`Local amounts agree (${c.ccy} ${n2(c.local)}); USD amounts differ by ${usd(dB)}`);
+      ev.push(`Rates used: ledger ${l.fx.toFixed(5)} vs custodian ${c.fx.toFixed(5)} (${(p * 100).toFixed(2)}% apart)`);
+      if (p < 0.015) { conf = .93; ev.push('Gap is within normal rate-source / fixing-time variance (< 1.5%)'); }
+      else { conf = .66; ev.push('Gap is too large for a normal rate-source difference; possible manual rate override or wrong fixing'); }
+    } else if (Math.abs(dP) > 1e-9) {
+      cause = 'PRICE'; const implied = r2(Math.abs(dP) * c.qty);
+      conf = Math.abs(implied - Math.abs(dL)) <= Math.max(1, Math.abs(dL) * .01) ? .91 : .7;
+      ev.push(`Execution price differs: ledger ${l.price} vs custodian ${c.price}`);
+      ev.push(`Price gap × quantity = ${c.ccy} ${n2(implied)}, which ${conf > .9 ? 'fully explains' : 'only partly explains'} the ${n2(Math.abs(dL))} cash difference`);
+    } else {
+      const amt = Math.abs(dL), sch = feeSchedule(l, amt);
+      if (sch) { cause = 'FEE'; conf = .95; feeName = sch.name; ev.push(`Cash differs by ${c.ccy} ${n2(amt)} while quantity and price agree`); ev.push(`Matches fee schedule: ${sch.name} = ${n2(sch.v)}`); }
+      else {
+        const round = Math.abs(amt - Math.round(amt)) < .005;
+        ev.push(`Cash differs by ${c.ccy} ${n2(amt)} while quantity and price agree`);
+        ev.push('Amount does not match any entry in the fee schedule');
+        if (round && amt <= 100) { cause = 'FEE'; conf = .84; feeName = 'Ad-hoc charge'; ev.push('Round amount ≤ 100, which looks like an ad-hoc broker or custodian charge'); alt.push('PRICE'); }
+        else if (round) { cause = 'FEE'; conf = .78; feeName = 'Ad-hoc charge'; ev.push('Round amount > 100: could be a charge or an unrecorded price adjustment'); alt.push('PRICE'); }
+        else { cause = 'PRICE'; conf = .6; ev.push('Irregular amount, more likely a price or rounding difference'); alt.push('FEE'); }
+      }
+    }
+  } else if (c) {
+    if (c.type === 'DIV') {
+      cause = 'CORP_ACTION'; const cal = ctx.cal.find(x => x.sec === c.sec && x.date === c.td);
+      ev.push(`Cash credit of ${usd(c.base)} from ${c.sec} on ${c.td}; no dividend receivable in the ledger`);
+      if (cal) { conf = .94; ev.push(`Matches announced dividend: ${cal.ps.toFixed(2)}/share × position ${n0(cal.pos)} = ${usd(cal.ps * cal.pos)}`); }
+      else { conf = .57; ev.push('No matching event in the corporate-actions feed'); ev.push('Could be a dividend, a tax reclaim or a misdirected payment, so it needs confirmation'); alt.push('MISSING_LEDGER'); }
+    } else if (c.type === 'FEE') {
+      cause = 'FEE'; conf = .92; feeName = 'Monthly custody fee';
+      ev.push('Custodian-only charge line coded CUSTODY FEE'); ev.push(`Amount ${usd(c.base)} is within the expected monthly range ($1,500–$3,000)`);
+    } else {
+      cause = 'MISSING_LEDGER'; conf = .9;
+      const near = ctx.led.some(l => l.sec === c.sec && l.side === c.side && l.qty === c.qty && l !== c && !ctx.matchedL.has(l.id));
+      ev.push(`Custodian confirms a ${c.side} of ${n0(c.qty)} ${c.sec} on ${c.td} with no ledger booking`);
+      ev.push(near ? 'A similar unmatched ledger entry exists. Check before booking' : 'No unmatched ledger entry with the same security, side and quantity');
+      if (near) conf = .7;
+    }
+  } else {
+    if (b.dupOf) { cause = 'DUPLICATE'; conf = .96; ev.push(`Reference ${l.ref} is booked twice in the ledger; ${b.dupOf} is already matched to the custodian`); ev.push('Identical security, quantity, price and amount'); }
+    else { cause = 'MISSING_CUSTODIAN'; conf = .86; ev.push(`Ledger shows a ${l.side} of ${n0(l.qty)} ${l.sec} (trade date ${l.td}) with no custodian confirmation`); ev.push('Possible unconfirmed, cancelled or mis-routed trade'); alt.push('TIMING'); }
+  }
+  return { cause, conf, ev, alt, feeName };
+}
+
+function impactOf(b) {
+  const c = b.c, l = b.l;
+  switch (b.cause) {
+    case 'TIMING': return 0;
+    case 'FX': return Math.abs(r2(c.base - l.base));
+    case 'FEE': case 'PRICE': return c && l ? Math.abs(r2((c.local - l.local) * c.fx)) : Math.abs((c || l).base);
+    case 'QTY': return Math.abs(r2(c.base - l.base));
+    default: return Math.abs((c || l).base);
+  }
+}
+
+function suggest(b) {
+  const c = b.c, l = b.l, L = [];
+  const dir = (amt, drAcct, crAcct, ccy) => L.push([drAcct, amt, 0, ccy], [crAcct, 0, amt, ccy]);
+  let text = '';
+  switch (b.cause) {
+    case 'TIMING': text = `No accounting entry. Settlement moved from ${l.sd} to ${c.sd}. Keep open and expect it to clear on ${c.sd}; chase the broker if not settled by then.`; break;
+    case 'FX': { const d = r2(c.base - l.base), a = Math.abs(d); text = `Align ledger FX rate to custodian rate ${c.fx.toFixed(5)} (ledger used ${l.fx.toFixed(5)}) and post the revaluation difference.`;
+      d > 0 ? dir(a, `Cash – ${c.ccy} (USD equiv.)`, 'FX revaluation gain', 'USD') : dir(a, 'FX revaluation loss', `Cash – ${c.ccy} (USD equiv.)`, 'USD'); break; }
+    case 'FEE': { const a = c && l ? Math.abs(r2(c.local - l.local)) : Math.abs(c.local), ccy = (c || l).ccy;
+      text = `Book the ${b.feeName ? b.feeName.toLowerCase() : 'charge'} deducted by the custodian.`; dir(a, c && c.type === 'FEE' ? 'Custody fee expense' : 'Transaction costs', `Cash – ${ccy}`, ccy); break; }
+    case 'PRICE': { const d = r2(c.local - l.local), a = Math.abs(d); text = `Amend trade cost to the custodian's settled amount after confirming the execution price with the broker.`;
+      d < 0 ? dir(a, 'Investments at cost', `Cash – ${c.ccy}`, c.ccy) : dir(a, `Cash – ${c.ccy}`, 'Investments at cost', c.ccy); break; }
+    case 'QTY': text = `Amend ledger quantity on ${l.ref} from ${n0(l.qty)} to ${n0(c.qty)} and re-derive consideration. Requires trade-desk confirmation.`; break;
+    case 'MISSING_LEDGER': { const a = Math.abs(c.local); text = `Book the trade in the ledger per the custodian confirmation (${c.ref}).`;
+      c.side === 'BUY' ? dir(a, 'Investments at cost', `Cash – ${c.ccy}`, c.ccy) : dir(a, `Cash – ${c.ccy}`, 'Investments at cost', c.ccy); break; }
+    case 'MISSING_CUSTODIAN': text = `Do not post. Confirm with the executing broker and custodian whether ${l.ref} was placed; if cancelled, reverse the ledger booking.`; break;
+    case 'CORP_ACTION': text = `Book dividend income for ${c.sec} paid ${c.td}.`; dir(Math.abs(c.local), 'Cash – USD', 'Dividend income', 'USD'); break;
+    case 'DUPLICATE': { const a = Math.abs(l.local); text = `Reverse duplicate ledger entry ${l.id} (${l.ref}).`;
+      l.side === 'BUY' ? dir(a, `Cash – ${l.ccy}`, 'Investments at cost', l.ccy) : dir(a, 'Investments at cost', `Cash – ${l.ccy}`, l.ccy); break; }
+  }
+  return { text, lines: L };
+}
+
+function decide(b, P) {
+  if (!P.autoSet.has(b.cause)) return { auto: false, why: `${LABEL[b.cause]} is not on the auto-resolve list, so it needs analyst sign-off` };
+  if (b.conf < P.threshold) return { auto: false, why: `Confidence ${pct(b.conf)} is below the ${pct(P.threshold)} threshold` };
+  if (b.impact > P.materiality) return { auto: false, why: `Impact ${usd0(b.impact)} exceeds the ${usd0(P.materiality)} materiality limit` };
+  return { auto: true, why: `Confidence ${pct(b.conf)} ≥ ${pct(P.threshold)}, impact ${usd0(b.impact)} within limit, cause on auto-resolve list` };
+}
+
+function runEngine(data) {
+  const run = reconcile(data.cust, data.led);
+  const ctx = { cal: data.cal, led: data.led, matchedL: new Set(run.matches.map(m => m.l.id)) };
+  run.breaks.forEach(b => {
+    Object.assign(b, classify(b, ctx));
+    b.impact = impactOf(b);
+    const r = b.c || b.l; b.age = Math.max(0, bdays(r.td, STATEMENT_DATE));
+    b.sugg = suggest(b);
+  });
+  run.breaks.sort((a, b) => b.impact - a.impact);
+  run.breaks.forEach((b, i) => b.id = 'BRK-' + String(i + 1).padStart(3, '0'));
+  return run;
+}
+
+function metrics(data, run) {
+  const B = run.breaks, auto = B.filter(b => b.status === 'auto'), ok = b => b.cause === b.truth;
+  const total = data.cust.length + data.led.length;
+  return {
+    nc: data.cust.length, nl: data.led.length,
+    exact: run.matches.filter(m => m.how === 'exact').length, agent: run.matches.filter(m => m.how === 'agent').length,
+    matchRate: run.matches.length * 2 / total, breaks: B.length,
+    auto: auto.length, autoRate: B.length ? auto.length / B.length : 0,
+    autoPrec: auto.length ? auto.filter(ok).length / auto.length : null, autoWrong: auto.filter(b => !ok(b)),
+    acc: B.length ? B.filter(ok).length / B.length : 0,
+    review: B.filter(b => b.status === 'review').length, escalated: B.filter(b => b.status === 'escalated').length,
+    closed: B.filter(b => b.status === 'approved' || b.status === 'reclassified').length,
+    impact: B.reduce((s, b) => s + b.impact, 0),
+    hours: (auto.length * MIN_MANUAL + (B.length - auto.length) * MIN_ASSIST) / 60,
+    manualHours: B.length * MIN_MANUAL / 60
+  };
+}
+
+if (typeof module !== 'undefined') module.exports = { generate, reconcile, runEngine, decide, metrics, LABEL };
+
+/* =========================================================================
+   UI
+   ========================================================================= */
+if (typeof document !== 'undefined') (function () {
+  const S = { seed: 2610, threshold: .90, materiality: 10000, autoSet: new Set(['TIMING', 'FX', 'FEE', 'CORP_ACTION']), showKey: false, filter: 'all', tab: 'overview' };
+  let DATA, RUN, AUDIT = [];
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  const stamp = () => new Date().toISOString().replace('T', ' ').slice(0, 19) + 'Z';
+  const log = (actor, brk, action, detail) => AUDIT.unshift({ ts: stamp(), actor, brk, action, detail });
+  const policyTag = () => `threshold ${pct(S.threshold)} · materiality ${usd0(S.materiality)} · auto-list: ${[...S.autoSet].map(c => LABEL[c]).join(', ') || 'none'}`;
+  const STATUS = { auto: 'Auto-resolved', review: 'Needs review', approved: 'Approved', reclassified: 'Reclassified', escalated: 'Escalated' };
+  const pill = st => `<span class="pill s-${st}">${STATUS[st]}</span>`;
+  const causePill = c => `<span class="pill cause">${LABEL[c]}</span>`;
+  const confBar = c => `<span class="conf"><span class="bar"><i class="${c < S.threshold ? 'lo' : ''}" style="width:${Math.round(c * 100)}%"></i></span>${pct(c)}</span>`;
+  function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 2600); }
+
+  function applyPolicy(reason) {
+    AUDIT = [];
+    log('Agent', '—', 'Run started', `${DATA.cust.length} custodian + ${DATA.led.length} ledger records · statement date ${STATEMENT_DATE} · data seed ${S.seed}`);
+    const ex = RUN.matches.filter(m => m.how === 'exact').length, ag = RUN.matches.length - ex;
+    log('Agent', '—', 'Matching complete', `${ex} pairs matched on reference; ${ag} manual bookings matched by attributes; ${RUN.breaks.length} breaks`);
+    log('Agent', '—', 'Policy loaded', policyTag());
+    RUN.breaks.forEach(b => {
+      b.dec = decide(b, S); b.status = b.dec.auto ? 'auto' : 'review'; b.human = null;
+      log('Agent', b.id, 'Diagnosed', `${LABEL[b.cause]} · confidence ${pct(b.conf)} · impact ${usd0(b.impact)}`);
+      log('Agent', b.id, b.dec.auto ? 'Auto-resolved' : 'Routed to analyst', b.dec.why);
+    });
+    AUDIT.reverse();
+    if (reason) { log('Analyst', '—', 'Policy changed', reason + ' → ' + policyTag()); }
+    render();
+  }
+  function fullRun() { DATA = generate(S.seed); RUN = runEngine(DATA); applyPolicy(); }
+
+  /* ---------- Overview ---------- */
+  function renderOverview() {
+    const m = metrics(DATA, RUN);
+    const byCause = CAUSES.map(c => { const B = RUN.breaks.filter(b => b.cause === c); return { c, n: B.length, auto: B.filter(b => b.status === 'auto').length, conf: B.length ? B.reduce((s, b) => s + b.conf, 0) / B.length : 0, ok: B.filter(b => b.truth === c).length, imp: B.reduce((s, b) => s + b.impact, 0) }; }).filter(r => r.n);
+    const warn = m.autoWrong.length
+      ? `<div class="warn"><b>${m.autoWrong.length} auto-resolved break${m.autoWrong.length > 1 ? 's were' : ' was'} misdiagnosed</b> (${m.autoWrong.map(b => b.id).join(', ')}). With the threshold at ${pct(S.threshold)}, the agent is acting on guesses. Raise it or take the cause off the auto-resolve list.</div>`
+      : `<div class="good">Every auto-resolved break was diagnosed correctly against the answer key. Items the agent was unsure about went to an analyst.</div>`;
+    $('tab-overview').innerHTML = `
+      <div class="grid kpis">
+        ${kpi('Records reconciled', n0(m.nc + m.nl), `${m.nc} custodian · ${m.nl} ledger`)}
+        ${kpi('Auto-match rate', pct(m.matchRate), `${m.exact} by reference + ${m.agent} matched by the agent`)}
+        ${kpi('Breaks found', m.breaks, `${usd0(m.impact)} total impact`)}
+        ${kpi('Auto-resolved', pct(m.autoRate), `${m.auto} of ${m.breaks} breaks`)}
+        ${kpi('Auto-resolve precision', m.autoPrec === null ? '—' : pct(m.autoPrec), 'vs. planted answer key')}
+        ${kpi('Diagnosis accuracy', pct(m.acc), 'all breaks, vs. answer key')}
+        ${kpi('Analyst queue', m.review, `${m.closed} closed · ${m.escalated} escalated`)}
+        ${kpi('Analyst time saved', m.hours.toFixed(1) + ' h', `vs. ${m.manualHours.toFixed(1)} h fully manual*`)}
+      </div>
+      ${warn}
+      <div class="section"><h2>Agent pipeline</h2>
+        <div class="pipe">
+          ${step(1, 'Ingest', m.nc + m.nl, 'Custodian statement + fund ledger')}
+          ${step(2, 'Match', RUN.matches.length, `pairs (${m.agent} via attribute matching)`)}
+          ${step(3, 'Diagnose', m.breaks, 'breaks scored with evidence')}
+          ${step(4, 'Decide', m.auto, 'auto-resolved under policy')}
+          ${step(5, 'Review', m.review, 'waiting for an analyst')}
+        </div>
+      </div>
+      <div class="section two">
+        <div class="card"><h2>Breaks by cause</h2>
+          <table><thead><tr><th>Cause</th><th class="num">Breaks</th><th class="num">Auto</th><th class="num">Avg conf.</th><th class="num">Impact</th>${S.showKey ? '<th class="num">Correct</th>' : ''}</tr></thead>
+          <tbody>${byCause.map(r => `<tr class="click" data-cause="${r.c}"><td>${LABEL[r.c]}</td><td class="num">${r.n}</td><td class="num">${r.auto}</td><td class="num">${pct(r.conf)}</td><td class="num">${usd0(r.imp)}</td>${S.showKey ? `<td class="num">${r.ok}/${r.n}</td>` : ''}</tr>`).join('')}</tbody></table>
+          <p class="note">*Time saved assumes ${MIN_MANUAL} min to investigate a break by hand and ${MIN_ASSIST} min saved when the agent pre-diagnoses one for review.</p>
+        </div>
+        <div class="card policy"><h2>Control policy</h2>
+          <label><div class="row"><span>Confidence threshold</span><span id="thV">${pct(S.threshold)}</span></div>
+            <input type="range" id="th" min="0.5" max="0.99" step="0.01" value="${S.threshold}"></label>
+          <label><div class="row"><span>Materiality limit (USD)</span><span id="matV">${usd0(S.materiality)}</span></div>
+            <input type="range" id="mat" min="0" max="50000" step="1000" value="${S.materiality}"></label>
+          <div class="row" style="font-weight:600">Causes the agent may auto-resolve</div>
+          <div class="checks">${['TIMING', 'FX', 'FEE', 'CORP_ACTION', 'PRICE'].map(c => `<label><input type="checkbox" data-auto="${c}" ${S.autoSet.has(c) ? 'checked' : ''}> ${LABEL[c]}</label>`).join('')}</div>
+          <p class="note">Quantity errors, missing trades and duplicates are always routed to an analyst: the agent never books or amends a trade on its own. Changing the policy re-runs decisions and resets analyst actions.</p>
+          <p class="note"><b>Try it:</b> drop the threshold to 80% and watch auto-resolve precision fall.</p>
+        </div>
+      </div>`;
+    $('th').oninput = e => { $('thV').textContent = pct(+e.target.value); };
+    $('th').onchange = e => { S.threshold = +e.target.value; applyPolicy('Confidence threshold set to ' + pct(S.threshold)); toast('Policy re-applied'); };
+    $('mat').oninput = e => { $('matV').textContent = usd0(+e.target.value); };
+    $('mat').onchange = e => { S.materiality = +e.target.value; applyPolicy('Materiality set to ' + usd0(S.materiality)); toast('Policy re-applied'); };
+    document.querySelectorAll('[data-auto]').forEach(cb => cb.onchange = () => { const c = cb.dataset.auto; cb.checked ? S.autoSet.add(c) : S.autoSet.delete(c); applyPolicy(`${LABEL[c]} ${cb.checked ? 'added to' : 'removed from'} auto-resolve list`); toast('Policy re-applied'); });
+    document.querySelectorAll('[data-cause]').forEach(tr => tr.onclick = () => { S.filter = 'cause:' + tr.dataset.cause; showTab('queue'); });
+  }
+  const kpi = (l, v, s) => `<div class="card kpi"><div class="lbl">${l}</div><div class="val">${v}</div><div class="sub">${s}</div></div>`;
+  const step = (n, t, c, d) => `<div class="step"><div class="n">STEP ${n}</div><div class="t">${t}</div><div class="c">${c}</div><div class="d">${d}</div></div>`;
+
+  /* ---------- Queue ---------- */
+  function renderQueue() {
+    const F = [['all', 'All'], ['review', 'Needs review'], ['auto', 'Auto-resolved'], ['closed', 'Closed by analyst'], ['escalated', 'Escalated']];
+    let B = RUN.breaks.slice();
+    if (S.filter.startsWith('cause:')) B = B.filter(b => b.cause === S.filter.slice(6));
+    else if (S.filter === 'closed') B = B.filter(b => b.status === 'approved' || b.status === 'reclassified');
+    else if (S.filter !== 'all') B = B.filter(b => b.status === S.filter);
+    const order = { review: 0, escalated: 1, auto: 2, reclassified: 3, approved: 4 };
+    B.sort((a, b) => order[a.status] - order[b.status] || b.impact - a.impact);
+    $('tab-queue').innerHTML = `
+      <div class="filters">${F.map(([k, l]) => `<button data-f="${k}" class="${S.filter === k ? 'on' : ''}">${l} (${count(k)})</button>`).join('')}
+        ${S.filter.startsWith('cause:') ? `<button class="on" data-f="all">${LABEL[S.filter.slice(6)]} ✕</button>` : ''}</div>
+      <div class="tablewrap"><table><thead><tr><th>Break</th><th>Status</th><th>Diagnosis</th><th>Confidence</th><th>Security</th><th>Side</th><th class="num">Impact (USD)</th><th class="num">Age (bd)</th><th>Policy decision</th>${S.showKey ? '<th>Answer key</th>' : ''}</tr></thead>
+      <tbody>${B.map(b => { const r = b.c || b.l; return `<tr class="click" data-id="${b.id}"><td><b>${b.id}</b></td><td>${pill(b.status)}</td><td>${causePill(b.cause)}</td><td>${confBar(b.conf)}</td><td>${esc(r.sec)}</td><td>${r.side}</td><td class="num">${usd0(b.impact)}</td><td class="num">${b.age}</td><td class="muted" style="max-width:280px">${esc(b.dec.why)}</td>${S.showKey ? `<td>${b.truth === b.cause ? '<span class="ok">✓</span>' : `<span class="bad">✗</span> ${LABEL[b.truth]}`}</td>` : ''}</tr>`; }).join('') || '<tr><td colspan="10" class="muted">Nothing here.</td></tr>'}</tbody></table></div>`;
+    document.querySelectorAll('[data-f]').forEach(x => x.onclick = () => { S.filter = x.dataset.f; renderQueue(); });
+    document.querySelectorAll('#tab-queue [data-id]').forEach(x => x.onclick = () => openDrawer(x.dataset.id));
+  }
+  function count(k) { const B = RUN.breaks; if (k === 'all') return B.length; if (k === 'closed') return B.filter(b => b.status === 'approved' || b.status === 'reclassified').length; return B.filter(b => b.status === k).length; }
+
+  /* ---------- Drawer ---------- */
+  function openDrawer(id) {
+    const b = RUN.breaks.find(x => x.id === id), c = b.c, l = b.l;
+    const rows = [['Record ID', 'id'], ['Reference', 'ref'], ['Type', 'type'], ['Security', 'sec'], ['Side', 'side'], ['Trade date', 'td'], ['Settle date', 'sd', 'sd'], ['Quantity', 'qty', 'qty', n0], ['Price', 'price', 'price'], ['Currency', 'ccy'], ['Amount (local)', 'local', 'local', n2], ['FX rate', 'fx', 'fx'], ['Amount (USD)', 'base', 'base', n2]];
+    const cell = (r, f, fmt) => r ? esc(fmt ? fmt(r[f]) : (r[f] === '' ? '(blank)' : r[f])) : '<span class="muted">—</span>';
+    const actions = b.status === 'review' || b.status === 'escalated'
+      ? `<div class="actions"><button class="btn primary" data-act="approve">✓ Approve agent's fix</button>${b.status === 'review' ? '<button class="btn danger" data-act="escalate">Escalate</button>' : ''}</div>
+         <div class="actions"><select id="recl">${CAUSES.filter(x => x !== b.cause).map(x => `<option value="${x}">${LABEL[x]}</option>`).join('')}</select><input type="text" id="note" placeholder="Analyst note (optional)"><button class="btn" data-act="reclassify">Reclassify</button></div>`
+      : b.status === 'auto'
+        ? `<div class="actions"><button class="btn" data-act="reopen">Reopen for review</button><span class="note">Analysts can override any automatic decision.</span></div>`
+        : `<p class="note">Closed by analyst${b.human && b.human.note ? `: “${esc(b.human.note)}”` : ''}.</p><div class="actions"><button class="btn" data-act="reopen">Reopen</button></div>`;
+    $('drawer').innerHTML = `
+      <div class="dh"><div><b style="font-size:16px">${b.id}</b> &nbsp;${pill(b.status)} ${causePill(b.human && b.human.cause ? b.human.cause : b.cause)}</div><button class="x" id="closeD" aria-label="Close">×</button></div>
+      <div class="db">
+        <div class="decision ${b.dec.auto ? 'auto' : 'review'}"><b>${b.dec.auto ? 'Auto-resolved by agent' : 'Routed to analyst'}:</b> ${esc(b.dec.why)}</div>
+        <h3>Source records</h3>
+        <div class="tablewrap"><table><thead><tr><th>Field</th><th>Fund ledger</th><th>Custodian</th></tr></thead><tbody>
+          ${rows.map(([lab, f, d, fmt]) => `<tr><td class="muted">${lab}</td><td class="${d && b.diffs.includes(d) ? 'diff' : ''}">${cell(l, f, fmt)}</td><td class="${d && b.diffs.includes(d) ? 'diff' : ''}">${cell(c, f, fmt)}</td></tr>`).join('')}
+        </tbody></table></div>
+        <h3>Agent diagnosis: ${LABEL[b.cause]} · ${confBar(b.conf)}</h3>
+        <ul class="ev">${b.ev.map(e => `<li>${esc(e)}</li>`).join('')}</ul>
+        ${b.alt.length ? `<p class="note">Alternative considered: ${b.alt.map(a => LABEL[a]).join(', ')}</p>` : ''}
+        <h3>Suggested resolution</h3>
+        <p>${esc(b.sugg.text)}</p>
+        ${b.sugg.lines.length ? `<div class="tablewrap"><table><thead><tr><th>Account</th><th class="num">Debit</th><th class="num">Credit</th><th>Ccy</th></tr></thead><tbody>${b.sugg.lines.map(([a, d, cr, cc]) => `<tr><td>${esc(a)}</td><td class="num">${d ? n2(d) : ''}</td><td class="num">${cr ? n2(cr) : ''}</td><td>${cc}</td></tr>`).join('')}</tbody></table></div>` : ''}
+        ${S.showKey ? `<div class="key"><b>Answer key:</b> planted cause was <b>${LABEL[b.truth]}</b>. ${b.truth === b.cause ? '<span class="ok">Agent was correct.</span>' : '<span class="bad">Agent was wrong.</span>'}</div>` : ''}
+        <h3>Analyst action</h3>${actions}
+      </div>`;
+    $('drawer').classList.add('open'); $('drawerBg').classList.add('open');
+    $('closeD').onclick = closeDrawer;
+    $('drawer').querySelectorAll('[data-act]').forEach(btn => btn.onclick = () => act(b, btn.dataset.act));
+  }
+  function closeDrawer() { $('drawer').classList.remove('open'); $('drawerBg').classList.remove('open'); }
+  function act(b, a) {
+    const note = $('note') ? $('note').value.trim() : '';
+    if (a === 'approve') { b.status = 'approved'; b.human = { note }; log('Analyst', b.id, 'Approved', `Agent fix accepted (${LABEL[b.cause]})${note ? ' · ' + note : ''}`); toast(b.id + ' approved and posted'); }
+    if (a === 'escalate') { b.status = 'escalated'; b.human = { note }; log('Analyst', b.id, 'Escalated', note || 'Escalated to operations lead'); toast(b.id + ' escalated'); }
+    if (a === 'reclassify') { const to = $('recl').value; b.status = 'reclassified'; b.human = { cause: to, note }; log('Analyst', b.id, 'Reclassified', `${LABEL[b.cause]} → ${LABEL[to]}${note ? ' · ' + note : ''}`); toast(b.id + ' reclassified'); }
+    if (a === 'reopen') { b.status = 'review'; b.human = null; log('Analyst', b.id, 'Reopened', 'Moved back to the review queue'); toast(b.id + ' reopened'); }
+    render(); openDrawer(b.id);
+  }
+
+  /* ---------- Audit ---------- */
+  function renderAudit() {
+    $('tab-audit').innerHTML = `
+      <div class="actions" style="margin:0 0 12px"><button class="btn" id="dlAudit">Download CSV</button><button class="btn" id="cpAudit">Copy CSV</button><span class="note">${AUDIT.length} entries · every agent and analyst decision, with reasons</span></div>
+      <div class="tablewrap"><table><thead><tr><th>Timestamp (UTC)</th><th>Actor</th><th>Break</th><th>Action</th><th>Detail</th></tr></thead><tbody>
+      ${AUDIT.slice().reverse().map(e => `<tr><td class="muted" style="white-space:nowrap">${e.ts}</td><td><b>${e.actor}</b></td><td>${e.brk}</td><td>${esc(e.action)}</td><td>${esc(e.detail)}</td></tr>`).join('')}</tbody></table></div>`;
+    const csv = () => toCSV(AUDIT.slice().reverse(), ['ts', 'actor', 'brk', 'action', 'detail']);
+    $('dlAudit').onclick = () => download('breakiq_audit_log.csv', csv());
+    $('cpAudit').onclick = () => copy(csv());
+  }
+
+  /* ---------- Data ---------- */
+  const COLS = ['id', 'ref', 'type', 'sec', 'side', 'td', 'sd', 'qty', 'price', 'ccy', 'local', 'fx', 'base'];
+  function renderData() {
+    const tbl = (rows, name, key) => `
+      <div class="section"><div class="actions" style="justify-content:space-between"><h2 style="margin:0">${name} <span class="muted" style="font-weight:400">(${rows.length} rows)</span></h2>
+      <span><button class="btn" data-dl="${key}">Download CSV</button> <button class="btn" data-cp="${key}">Copy CSV</button></span></div>
+      <div class="tablewrap" style="max-height:420px;overflow:auto;margin-top:8px"><table><thead><tr>${COLS.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>
+      ${rows.map(r => `<tr>${COLS.map(c => `<td class="${typeof r[c] === 'number' ? 'num' : ''}">${esc(r[c] === '' ? '(blank)' : r[c])}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+    $('tab-data').innerHTML = `<p class="muted" style="margin-top:0">Synthetic month-end data for one fund (statement date ${STATEMENT_DATE}, data seed ${S.seed}). Breaks were planted on purpose with a hidden answer key, so the agent's accuracy can be measured. Click <b>New sample data</b> to generate a fresh set.</p>
+      ${tbl(DATA.cust, 'Custodian statement', 'cust')}${tbl(DATA.led, 'Fund ledger', 'led')}`;
+    document.querySelectorAll('[data-dl]').forEach(b => b.onclick = () => download(`breakiq_${b.dataset.dl === 'cust' ? 'custodian' : 'ledger'}.csv`, toCSV(DATA[b.dataset.dl], COLS)));
+    document.querySelectorAll('[data-cp]').forEach(b => b.onclick = () => copy(toCSV(DATA[b.dataset.cp], COLS)));
+  }
+  function toCSV(rows, cols) { const q = v => { v = v === undefined || v === null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }; return [cols.join(','), ...rows.map(r => cols.map(c => q(r[c])).join(','))].join('\n'); }
+  function download(name, text) { try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); toast('Downloading ' + name); } catch (e) { copy(text); } }
+  function copy(text) { try { navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard'), () => toast('Copy blocked by the browser')); } catch (e) { toast('Copy blocked by the browser'); } }
+
+  /* ---------- How it works ---------- */
+  function renderHow() {
+    $('tab-how').innerHTML = `
+      <div class="card">
+      <h2>The problem</h2>
+      <p>Every day, fund and bank operations teams reconcile what their books say (the ledger) against what the custodian or bank says actually happened. Records that don't agree are <b>breaks</b>. Analysts spend hours on each break working out why it happened, most of which are routine (a late settlement, an FX rate from a different source, a stamp-duty charge). Meanwhile the breaks that matter (a missing trade, a fat-finger quantity) wait in the same queue.</p>
+      <h2>What the agent does</h2>
+      <ol>
+        <li><b>Ingest:</b> loads the custodian statement and the fund ledger.</li>
+        <li><b>Match:</b> pairs records on trade reference, then matches manual bookings that have no reference on security, side, quantity, date and amount.</li>
+        <li><b>Diagnose:</b> compares every field of each break and scores possible causes (timing, FX, fee, price, quantity, missing, duplicate, corporate action) against evidence, including a fee schedule and a corporate-actions feed. Each diagnosis comes with a confidence score, the evidence behind it and the alternative it considered.</li>
+        <li><b>Decide:</b> applies a control policy. A break is auto-resolved only if the confidence is above the threshold, the dollar impact is below the materiality limit, <i>and</i> the cause is on the approved list.</li>
+        <li><b>Review:</b> everything else goes to an analyst with a suggested fix and journal entry ready to approve, reclassify or escalate.</li>
+      </ol>
+      <h2>Controls built in</h2>
+      <ul>
+        <li><b>Human in the loop by design:</b> the agent never books, amends or reverses a trade on its own. Quantity errors, missing trades and duplicates always need sign-off.</li>
+        <li><b>Three gates on every automatic action:</b> confidence, materiality and an approved cause list, all set by the operations lead.</li>
+        <li><b>Explainability:</b> every diagnosis shows the evidence it used; no black-box verdicts.</li>
+        <li><b>Full audit trail:</b> each agent and analyst action is time-stamped with the policy in force, exportable for audit and model-risk review.</li>
+        <li><b>Measured accuracy:</b> the sample data has a planted answer key, so precision is measured rather than claimed. Turn on <i>Answer key</i> in the header to see it.</li>
+        <li><b>Analyst override:</b> any automatic decision can be reopened, and reclassifications are logged as feedback for tuning.</li>
+      </ul>
+      <h2>How to read the metrics</h2>
+      <ul>
+        <li><b>Auto-resolve precision:</b> of the breaks the agent closed by itself, the share it diagnosed correctly. This is the number a controller cares about most.</li>
+        <li><b>Diagnosis accuracy:</b> correct diagnoses across all breaks, including those sent to analysts.</li>
+        <li><b>Auto-resolve rate:</b> the share of breaks that never reach a person. It trades off against precision; the threshold slider shows how.</li>
+      </ul>
+      <h2>Under the hood</h2>
+      <p>This prototype runs entirely in the browser on synthetic data. Diagnosis uses an explainable, evidence-based scoring model. The production design adds an LLM layer that reads unstructured evidence (broker emails, SWIFT messages, custodian notes) and writes the investigation narrative, sitting behind the same policy gates and audit trail.</p>
+      </div>`;
+  }
+
+  /* ---------- Shell ---------- */
+  function render() {
+    $('seedChip').textContent = `Statement ${STATEMENT_DATE} · seed ${S.seed}`;
+    renderOverview(); renderQueue(); renderAudit(); renderData();
+  }
+  function showTab(t) {
+    S.tab = t;
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+    ['overview', 'queue', 'audit', 'data', 'how'].forEach(x => $('tab-' + x).hidden = x !== t);
+    if (t === 'queue') renderQueue();
+    try { history.replaceState(null, '', '#' + t); } catch (e) {}
+  }
+  document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+  $('drawerBg').onclick = closeDrawer;
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+  $('keyToggle').onchange = e => { S.showKey = e.target.checked; render(); };
+  $('newData').onclick = () => { S.seed = 1000 + Math.floor(Math.random() * 9000); fullRun(); closeDrawer(); toast('New sample data generated (seed ' + S.seed + ')'); };
+
+  renderHow(); fullRun();
+  const h = (location.hash || '').slice(1);
+  showTab(['overview', 'queue', 'audit', 'data', 'how'].includes(h) ? h : 'overview');
+})();
+</script>
+</body>
+</html>
